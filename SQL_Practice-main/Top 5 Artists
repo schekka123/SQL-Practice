@@ -1,0 +1,59 @@
+Question: Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain information about the artists, songs, and music charts, respectively.
+
+Write a query to find the top 5 artists whose songs appear most frequently in the Top 10 of the global_song_rank table.
+Display the top 5 artist names in ascending order, along with their song appearance ranking.
+
+Assumptions:
+
+If two or more artists have the same number of song appearances, 
+they should be assigned the same ranking, and the rank numbers should be continuous (i.e. 1, 2, 2, 3, 4, 5).
+
+For instance, if both Ed Sheeran and Bad Bunny appear in the Top 10 five times, 
+they should both be ranked 1st and the next artist should be ranked 2nd.
+
+artists Example Input:
+
+artist_id	artist_name
+101	Ed Sheeran
+120	Drake
+
+songs Example Input:
+
+song_id	artist_id
+45202	101
+19960	120
+
+global_song_rank Example Input:
+
+day	song_id	rank
+1	45202	5
+3	45202	2
+1	19960	3
+9	19960	15
+
+Example Output:
+
+artist_name	artist_rank
+Ed Sheeran	1
+Drake	2
+
+
+Query:
+
+WITH top_10 AS (
+
+SELECT artists.artist_name,
+
+DENSE_RANK() OVER(
+ORDER BY COUNT(songs.song_id) DESC
+) AS artist_rank
+FROM artists
+
+INNER JOIN songs ON artists.artist_id = songs.artist_id
+INNER JOIN global_song_rank ON songs.song_id = global_song_rank.song_id
+WHERE global_song_rank.rank <= 10
+GROUP BY artists.artist_name
+)
+
+SELECT artist_name, artist_rank FROM top_10
+WHERE artist_rank <=5;
